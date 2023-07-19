@@ -6,70 +6,84 @@ from django.contrib.auth.models import AbstractUser
 class User(AbstractUser):
     phone = models.CharField(max_length=10)
 
+    def get_group(self):
+        return self.groups.all()
+
 
 class Client(models.Model):
     firstname = models.CharField(max_length=25, null=True, blank=True)
-    lastname = models.CharField(max_length=25,null=True,blank=True)
-    email = models.EmailField(null=True, blank=True)
-    phone = models.CharField(max_length=20, null=True, blank=True)
-    mobil = models.CharField(max_length=20,blank=True,null=True)
-    companyname = models.CharField(max_length=250,null=True,blank=True)
-    dateCreated = models.DateField(auto_now_add=True,editable=False)
+    lastname = models.CharField(max_length=25, null=True, blank=True)
+    email = models.EmailField(max_length=250, unique=True,blank=True, null=True)
+    phone = models.CharField(max_length=20)
+    mobile = models.CharField(max_length=20, blank=True, null=True)
+    companyname = models.CharField(max_length=250, )
+    dateCreated = models.DateField(auto_now_add=True, editable=False)
     dateUpdated = models.DateTimeField(auto_now=True)
     is_potential = models.BooleanField(default=True)
-    SalesContact = models.ForeignKey('SalesTeam',on_delete=models.CASCADE,null=True)
+    SalesContact = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
-        return self.name
+        if self.firstname or self.lastname:
+            return f'{self.firstname[0]}. {self.lastname}'
+        return f'{self.companyname}'
 
 
-class SalesTeam(User):
-    class Meta:
-        verbose_name = 'SalesTeam'
-
-    def findLeads():
-        # create leads(potential client)
-
-        pass
-
-    def convertLeads():
-        # convert leads  into client
-        pass
-
-    def followUp():
-        pass
 
 
-class SupportTeam(User):
-    class Meta:
-        verbose_name = 'SupportTeam'
-
-    def manageEvent():
-        pass
-
-    def updateEvent():
-        pass
-
-    def updateClient():
-        pass
-
-
-class Event(models.Model):
-    client = models.ForeignKey('Client' ,on_delete=models.CASCADE)
-    date_created = models.DateTimeField(auto_now_add=True,editable=False,null= True)
-    date_updated = models.DateTimeField(auto_now=True,null= True)
-    supportContact = models.ForeignKey('SupportTeam',on_delete=models.CASCADE)
-    Event_Status = 'Foreign key / int / ex : 1' # see DATA+TABLE.xlsx
-    attendees = models.IntegerField(blank=True,null=True)
-    e_dates = models.DateTimeField(blank=True,null=True)
-    notes = models.TextField(blank=True,null=True)
+# class SalesUser(User):
+#     class Meta:
+#         verbose_name = 'SalesUser'
+#
+#     def findLeads(self):
+#         # leads = [client for client in client_list if client.is_potential]
+#         # return leads
+#         pass
+#
+#     def convertLeads():
+#         # leads = client with is potential = True
+#         # estimate = temporal contract
+#         # if estimate is accepted then leads become Client
+#
+#         pass
+#
+#     def followUp():
+#         pass
+#
+#
+# class SupportUser(User):
+#     class Meta:
+#         verbose_name = 'SupportUser'
+#
+#     def manageEvent():
+#         pass
+#
+#     def updateEvent():
+#         pass
+#
+#     def updateClient():
+#         pass
+#
 
 
 class Contract(models.Model):
-    salesContact = models.ForeignKey('SalesTeam',on_delete=models.CASCADE)
-    client = models.ForeignKey("Client", on_delete=models.CASCADE)
-    date_created = models.DateTimeField(auto_now_add=True,editable=False)
+    salesContact = models.ForeignKey(User, on_delete=models.CASCADE,related_name='contracts')
+    client = models.ForeignKey(Client, on_delete=models.CASCADE,related_name='contracts')
+    date_created = models.DateTimeField(auto_now_add=True, editable=False)
     date_updated = models.DateTimeField(auto_now=True)
-    status = models.BooleanField(default= False)
+    status = models.BooleanField(default=False)
     amount = models.FloatField()
-    payment_due = models.DateTimeField(blank=True,null= True)
+    payment_due = models.DateTimeField(blank=True, null=True)
+
+# trois
+#
+#
+class Event(models.Model):
+    client = models.ForeignKey(Client, on_delete=models.CASCADE,related_name='events')
+    date_created = models.DateTimeField(auto_now_add=True, editable=False, null=True)
+    date_updated = models.DateTimeField(auto_now=True, null=True)
+    supportContact = models.ForeignKey(User, on_delete=models.CASCADE,null=True,related_name='events')
+    Event_Status = models.ForeignKey(Contract,on_delete=models.CASCADE, null=True,related_name='event')
+    attendees = models.IntegerField(blank=True, null=True)
+    e_dates = models.DateTimeField(blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
+

@@ -35,7 +35,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'CRM'
+    'rest_framework',
+    'rest_framework.authtoken',
+    'django_filters',
+    'CRM',
+    'API'
 ]
 
 MIDDLEWARE = [
@@ -122,3 +126,17 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'CRM.User'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend','rest_framework.filters'
+                                                                                    '.SearchFilter',
+                                'rest_framework.filters.OrderingFilter'],
+}
+
+
+LOGIN_REDIRECT_URL = '/api/client/'
+LOGOUT_REDIRECT_URL = '/api/client/'
+LOGIN_URL = '/auth/login/'
