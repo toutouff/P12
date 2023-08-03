@@ -8,7 +8,7 @@ from CRM.models import Client,Contract,Event
 
 class EventSerializer(ModelSerializer):
     client = StringRelatedField(many=False,read_only=True)
-    supportContact = StringRelatedField(many=True)
+    supportContact = StringRelatedField(many=False,required=False)
     Event_Status = SlugRelatedField(many=False,read_only=True,slug_field='status')
     class Meta:
         model = Event
@@ -17,7 +17,7 @@ class EventSerializer(ModelSerializer):
 
 
 class ContractSerializer(ModelSerializer):
-    client = StringRelatedField(many=False)
+    client = StringRelatedField(many=False,)
     salesContact = StringRelatedField(many=False)
     event = EventSerializer(many=True,read_only=False,required=False)
     # the serializer should display event info rather than event product Key
@@ -46,7 +46,7 @@ class ClientSerializer(ModelSerializer):
     events = EventSerializer(many=True,read_only=True)
     class Meta:
         model = Client
-        fields = ['id','firstname','lastname','email','phone','mobile','companyname','dateUpdated','is_potential','SalesContact','contracts','events']
+        fields = ['id','firstname','lastname','email','phone','mobile','companyname','dateUpdated','is_potential','salesContact','contracts','events']
 
 
 

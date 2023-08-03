@@ -4,7 +4,6 @@ from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
 class User(AbstractUser):
-    phone = models.CharField(max_length=10)
 
     def get_group(self):
         return self.groups.all()
@@ -20,7 +19,7 @@ class Client(models.Model):
     dateCreated = models.DateField(auto_now_add=True, editable=False)
     dateUpdated = models.DateTimeField(auto_now=True)
     is_potential = models.BooleanField(default=True)
-    SalesContact = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    salesContact = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         if self.firstname or self.lastname:
@@ -78,10 +77,10 @@ class Contract(models.Model):
 #
 #
 class Event(models.Model):
-    client = models.ForeignKey(Client, on_delete=models.CASCADE,related_name='events')
+    client = models.ForeignKey(Client,null=True,blank=True,on_delete=models.CASCADE,related_name='events')
     date_created = models.DateTimeField(auto_now_add=True, editable=False, null=True)
     date_updated = models.DateTimeField(auto_now=True, null=True)
-    supportContact = models.ForeignKey(User, on_delete=models.CASCADE,null=True,related_name='events')
+    supportContact = models.ForeignKey(User, on_delete=models.CASCADE,null=True,blank=True,related_name='events')
     Event_Status = models.ForeignKey(Contract,on_delete=models.CASCADE, null=True,related_name='event')
     attendees = models.IntegerField(blank=True, null=True)
     e_dates = models.DateTimeField(blank=True, null=True)

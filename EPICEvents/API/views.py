@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.contrib.auth import authenticate
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import api_view, action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
@@ -14,41 +14,71 @@ from CRM.models import Client, Contract, Event
 from .serializers import ClientSerializer, ContractSerializer, EventSerializer
 
 
-class Authenticate(APIView):
-    def post(self, request):
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(username=username, password=password)
-        token = Token.objects.get(user_id=user.id)
-        if token:
-            return Response({'status': 'auth is W.I.P', 'user': user.id, 'username': username, 'password': password,
-                             'token': f'Token {token.key}'})
-        else:
-            token = Token.objects.create(user=user)
-            return Response({'status': 'auth is W.I.P', 'user': user.id, 'username': username, 'password': password,
-                             'token': token.key})
+class ClientPermission(BasePermission):
+    def hasPermission(self,request,view):
+        return request.user.is_authenticated
+    def hasObjectPermission(self,request,view,obj):
+        if request.method in SAFE_METHOD:
+            return True
+        elif request.user == obj.salesContact:
+            return True
+        else :return False
 
+
+
+
+
+# class Authenticate(APIView):
+#     def post(self, request):
+#         username = request.POST['username']
+#         password = request.POST['password']
+#         user = authenticate(username=username, password=password)
+#         token = Token.objects.get(user_id=user.id)
+#         if token:
+#             return Response({'status': 'auth is W.I.P', 'user': user.id, 'username': username, 'password': password,
+#                              'token': f'Token {token.key}'})
+#         else:
+#             token = Token.objects.create(user=user)
+#             return Response({'status': 'auth is W.I.P', 'user': user.id, 'username': username, 'password': password,
+#                              'token': token.key})
+#
 
 # Create your views here.
 class ClientViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     model = Client
     search_fields = ['email','phone','companyname','firstname','lastname','mobile']      # search entry will be matched against these fields
-    filterset_fields = ['is_potential','SalesContact']                                        # filter entry will be matched against these fields
-    ordering_fields= ['dateCreated','dateUpdated','is_potential','id','SalesContact__id']
+    filterset_fields = ['is_potential','salesContact']                                        # filter entry will be matched against these fields
+    ordering_fields= ['dateCreated','dateUpdated','is_potential','id','salesContact__id']
     serializer_class = ClientSerializer
 
-
     def get_queryset(self):
-        groups = self.request.user.groups.all()
-        for group in groups:print(group.name,file=sys.stderr)
+        return Client.objects.all()
 
-        if self.request.user.is_superuser:
-            return Client.objects.all()
-        elif any(group.name == 'sales' for group in groups):
-            return Client.objects.filter(SalesContact=self.request.user)
+
+
+    # def get_queryset(self):
+    #     groups = self.request.user.groups.all()
+    #     for group in groups:print(group.name,file=sys.stderr)
+    #
+    #     if self.request.user.is_superuser:
+    #         return Client.objects.all()
+    #     elif any(group.name == 'Sales' for group in groups):
+    #         return Client.objects.filter(salesContact=self.request.user)
+    #     else:
+    #         return Client.objects.filter(events__supportContact=self.request.user) # FIXME : loop over all event and return the matching one
+
+
+    def perform_create(self,serializer):
+        user = self.request.user
+        groups = user.get_group()
+        groups = [group.name for group in groups]
+        if 'Sales' in groups:
+            serializer.save(salesContact = user)
         else:
-            return Client.objects.filter(events__supportContact=self.request.user) # FIXME : loop over all event and return the matching one
+            serializer.save()
+
+
 
 
 
@@ -59,7 +89,7 @@ class ClientViewSet(ModelViewSet):
 
     def list_unasigned(self,request):
         clients = Client.objects.all()
-        clients = clients.filter(SalesContact__isnull=True)
+        clients = clients.filter(salesContact__isnull=True)
         return Response(ClientSerializer(clients,many=True).data)
 
 
@@ -178,19 +208,26 @@ class ContractViewSet(ModelViewSet):
     filterset_fields = ['status','payment_due']
     ordering_fields = ['dateCreated','dateUpdated','status','payment_due','id','client__id']
 
-    def perform_create(self, serializer):
+    def perform_create(self,serializer):
 
-        # add event here
+        if 'Sales' in [group.name for group in self.request.user.get_group()]:
+            salesContact=self.request.user
+        else:
+            salesContact=0
+        # TODO : add error feedback
 
-        client = Client.objects.filter(id=self.request.data['client']).first()
-        print(client)
-        return serializer.save(salesContact=self.request.user,client=client)
+        if 'client_id' in self.request.data.keys():
+            client = Client.objects.get(id=self.request.data['client_id'])
+        else:client=0
+        # TODO : add error feedback
+        if salesContact and client:
+            serializer.save(client=client,salesContact=salesContact)
 
     def get_queryset(self):
-
+        return Contract.objects.all()
         # Todo : add support for searching and filterring
-        user = self.request.user
-        return Contract.objects.filter(salesContact=user)
+        #user = self.request.user
+        #return Contract.objects.filter(salesContact=user)
 
     @action(detail=True, methods=['get'])
     def event(self,request, pk=None):
@@ -212,23 +249,20 @@ class EventViewSet(ModelViewSet):
     serializer_class = EventSerializer
     filterset_fields = ['Event_Status','attendees','supportContact__id']
     ordering_fields = ['dateCreated','dateUpdated','Event_Status','attendees','id','client__id']
-
-    def perform_create(self, serializer):
-        client = Client.objects.filter(id=self.request.data['client']).first()
-        serializer.save(client=client)
+    #
+    # def perform_create(self, serializer):
+    #     client = Client.objects.filter(id=self.request.data['client']).first()
+    #     serializer.save(client=client)
 
     def get_queryset(self):
-        user = self.request.user
-        query_set = Event.objects.filter(supportContact=user)
-        if not len(query_set):
-            query_set = Event.objects.filter(Event_Status__salesContact=user)
-            if len(query_set):
-                return query_set
-        return query_set
-
-
-
-
+        return Event.objects.all()
+        # user = self.request.user
+        # query_set = Event.objects.filter(supportContact=user)
+        # if not len(query_set):
+        #     query_set = Event.objects.filter(Event_Status__salesContact=user)
+        #     if len(query_set):
+        #         return query_set
+        # return query_set
 
 
 
