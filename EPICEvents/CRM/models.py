@@ -4,6 +4,7 @@ from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
 class User(AbstractUser):
+    has_hashed_pass = models.BooleanField(default=False)
 
     def get_group(self):
         return self.groups.all()
@@ -22,7 +23,7 @@ class Client(models.Model):
     salesContact = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
-        if self.firstname or self.lastname:
+        if self.firstname and self.lastname:
             return f'{self.firstname[0]}. {self.lastname}'
         return f'{self.companyname}'
 
