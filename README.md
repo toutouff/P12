@@ -21,20 +21,20 @@
   9d539fa62040   postgres:15      "docker-entrypoint.s…"   2 minutes ago    Up 24 seconds   0.0.0.0:5432->5432/tcp   postgres15
   ```
 > you need the name of the EPICEvent service here it's 'epicevents-web-1'
-* if its the first time startting you need to
-  * make migration
+* if its the first time running the app  you need to : 
+  - make migration
 
   ```
   docker exec epicevents-web-1 python manage.py makemigrations
   ```
 
-  *  migrate
+  -  migrate
 
   ```
   docker exec epicevents-web-1 python manage.py migrate
 
   ```
-  *  populate the db form initial_db.json
+  -  populate the db form initial_db.json
 
   ```
   docker exec epicevents-web-1 python manage.py loaddata initial_db.json
