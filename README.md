@@ -41,7 +41,7 @@
   ```
 
 ## accessing the admin page 
-go to http://localhost/admin
+go to http://localhost:8000/admin
 default admin user is 
 username admin 
 password admin 
