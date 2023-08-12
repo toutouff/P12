@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 
+
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -78,11 +81,11 @@ WSGI_APPLICATION = 'EPICEvents.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB'),
-        'USER': os.environ.get('POSTGRES_USER'),  
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-        'HOST': os.environ.get('POSTGRES_HOST'),
-        'PORT': os.environ.get('POSTGRES_PORT')
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': 'localhost',
+        'PORT': ''
     }
 }
 
@@ -140,3 +143,45 @@ REST_FRAMEWORK = {
 LOGIN_REDIRECT_URL = '/api/client/'
 LOGOUT_REDIRECT_URL = '/api/client/'
 LOGIN_URL = '/auth/login/'
+
+# The version number of our log
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{levelname} {asctime} {module}]{message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',  # Capture log messages at INFO level and higher
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR/'logs.log',
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'INFO',  # Capture log messages at INFO level and higher
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        }
+    },
+    'root': {
+        'handlers': ['file'],
+        'level': 'DEBUG',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file','console'],
+            'level': 'INFO',  # Capture log messages at INFO level and higher
+            'propagate': True,
+        },
+        'django.request': {  # Adding this configuration for request-specific logging
+          'handlers': ['file','console'],
+          'level': 'INFO',  # Capture log messages at INFO level and higher
+          'propagate': False,  # Don't propagate to the root logger
+        },
+    },
+}

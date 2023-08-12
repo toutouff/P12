@@ -25,7 +25,6 @@ router = routers.SimpleRouter()
 router.register(r'client',ClientViewSet,basename='client')
 router.register(r'contract',ContractViewSet,basename='contract')
 router.register(r'event',EventViewSet,basename='event')
-# router.register(r'login',Authenticate,basename='login')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

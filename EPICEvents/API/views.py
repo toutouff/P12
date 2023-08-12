@@ -16,6 +16,11 @@ from rest_framework.permissions import IsAuthenticated
 
 
 class ClientViewSet(ModelViewSet):
+    """
+    Client ViewSet
+    :param ModelViewSet: ModelViewSet
+    :type ModelViewSet: ModelViewSet
+    """
     model = Client
     search_fields = ['email', 'phone', 'companyname', 'firstname', 'lastname',
                      'mobile']  # search entry will be matched against these fields
@@ -25,10 +30,22 @@ class ClientViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated & (IsSalesPerson | IsSupportPerson | IsSuperUser)]
 
     def get_queryset(self):
+        """
+        get_queryset
+        :param self: self
+        :type self: self
+        :return: Client.objects.all()
+        :rtype: Client
+        """
         return Client.objects.all()
 
 
 class ContractViewSet(ModelViewSet):
+    """
+    Contract ViewSet
+    :param ModelViewSet: ModelViewSet
+    :type ModelViewSet: ModelViewSet
+    """
     permission_classes = [IsAuthenticated & (IsSalesPerson | IsSupportPerson)]
     model = Contract
     serializer_class = ContractSerializer
@@ -36,38 +53,36 @@ class ContractViewSet(ModelViewSet):
                     'client__mobile']
     filterset_fields = ['status', 'payment_due']
     ordering_fields = ['dateCreated', 'dateUpdated', 'status', 'payment_due', 'id', 'client__id']
-    #
-    # def perform_create(self, serializer):
-    #
-    #     if 'Sales' in [group.name for group in self.request.user.get_group()]:
-    #         salesContact = self.request.user
-    #     else:
-    #         salesContact = 0
-    #     # TODO : add error feedback
-    #
-    #     if 'client_id' in self.request.data.keys():
-    #         client = Client.objects.get(id=self.request.data['client_id'])
-    #     else:
-    #         client = 0
-    #     # TODO : add error feedback
-    #     if salesContact and client:
-    #         serializer.save(client=client, salesContact=salesContact)
 
     def get_queryset(self):
+        """
+        get_queryset
+        :param self: self
+        :type self: self
+        :return: Contract.objects.all()
+        :rtype: Contract
+        """
         return Contract.objects.all()
 
 
 class EventViewSet(ModelViewSet):
-    # TODO : fix supportcontact update
-
+    """
+    Event ViewSet
+    :param ModelViewSet: ModelViewSet
+    :type ModelViewSet: ModelViewSet
+    """
     model = Event
     serializer_class = EventSerializer
     filterset_fields = ['Event_Status', 'attendees', 'supportContact__id']
     ordering_fields = ['dateCreated', 'dateUpdated', 'Event_Status', 'attendees', 'id', 'client__id']
     permission_classes = [IsAuthenticated & (IsSalesPerson | IsSupportPerson)]
 
-
     def get_queryset(self):
+        """
+        get_queryset
+        :param self: self
+        :type self: self
+        :return: Event.objects.all()
+        :rtype: Event
+        """
         return Event.objects.all()
-
-

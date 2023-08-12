@@ -28,43 +28,6 @@ class Client(models.Model):
         return f'{self.companyname}'
 
 
-
-
-# class SalesUser(User):
-#     class Meta:
-#         verbose_name = 'SalesUser'
-#
-#     def findLeads(self):
-#         # leads = [client for client in client_list if client.is_potential]
-#         # return leads
-#         pass
-#
-#     def convertLeads():
-#         # leads = client with is potential = True
-#         # estimate = temporal contract
-#         # if estimate is accepted then leads become Client
-#
-#         pass
-#
-#     def followUp():
-#         pass
-#
-#
-# class SupportUser(User):
-#     class Meta:
-#         verbose_name = 'SupportUser'
-#
-#     def manageEvent():
-#         pass
-#
-#     def updateEvent():
-#         pass
-#
-#     def updateClient():
-#         pass
-#
-
-
 class Contract(models.Model):
     salesContact = models.ForeignKey(User, on_delete=models.CASCADE,related_name='contracts')
     client = models.ForeignKey(Client, on_delete=models.CASCADE,related_name='contracts')
@@ -74,9 +37,7 @@ class Contract(models.Model):
     amount = models.FloatField()
     payment_due = models.DateTimeField(blank=True, null=True)
 
-# trois
-#
-#
+
 class Event(models.Model):
     client = models.ForeignKey(Client,null=True,blank=True,on_delete=models.CASCADE,related_name='events')
     date_created = models.DateTimeField(auto_now_add=True, editable=False, null=True)
